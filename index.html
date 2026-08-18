@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aqueduct Cloud Assessment - Onboarding</title>
+<style>
+  /* ONE-TIME EDIT: nothing in the CSS. Edit the CONFIG block in the script below. */
+  :root {
+    --navy: #1b2a4a;
+    --navy-light: #2e4472;
+    --accent: #2e86ab;
+    --ok: #2e7d32;
+    --err: #c62828;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #232936;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    width: 100%;
+    background: var(--navy);
+    color: #fff;
+    padding: 22px 0;
+    text-align: center;
+  }
+  header h1 { font-size: 22px; font-weight: 600; letter-spacing: 0.3px; }
+  header p { color: #c7d2e6; font-size: 14px; margin-top: 4px; }
+  main { width: 100%; max-width: 720px; padding: 32px 20px 60px; }
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(27,42,74,0.12);
+    padding: 28px;
+    margin-bottom: 20px;
+    border-top: 4px solid var(--navy);
+  }
+  .status-icon { font-size: 40px; line-height: 1; margin-bottom: 10px; }
+  .ok .status-icon { color: var(--ok); }
+  .err .status-icon { color: var(--err); }
+  h2 { font-size: 20px; margin-bottom: 8px; color: var(--navy); }
+  p { font-size: 15px; line-height: 1.55; margin-bottom: 10px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .tenant-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eef2f8;
+    border: 1px solid #d4dcea;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 14px 0;
+    font-family: Consolas, monospace;
+    font-size: 15px;
+    word-break: break-all;
+  }
+  .tenant-box button {
+    flex-shrink: 0;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tenant-box button:hover { background: var(--navy-light); }
+  .step {
+    display: flex;
+    gap: 14px;
+    margin: 18px 0;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600;
+  }
+  .btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 15px;
+    margin-top: 6px;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .errbox {
+    background: #fdecea;
+    border: 1px solid #f5c6c3;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-family: Consolas, monospace;
+    font-size: 13px;
+    word-break: break-word;
+  }
+  footer { padding: 18px; color: var(--muted); font-size: 12px; text-align: center; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Aqueduct Cloud Assessment</h1>
+  <p>Read-only onboarding</p>
+</header>
+
+<main id="main">
+  <noscript><div class="card"><p>This page needs JavaScript to read the consent result from the URL.</p></div></noscript>
+</main>
+
+<footer>
+  Everything granted is read-only. Aqueduct cannot change anything in your tenant.<br>
+  You can revoke access at any time: Entra admin center &gt; Enterprise applications &gt; "Aqueduct Cloud Assessment - Read Only" &gt; Delete.
+</footer>
+
+<script>
+  // ------------------------------------------------------------------
+  // CONFIG: one-time edits after hosting is set up
+  // ------------------------------------------------------------------
+  var CONFIG = {
+    contactEmail: "dbird@aqueducttech.com",
+    // Pre-wired to this repo's raw lighthouse.json (AqueductTech/assessment-portal, main).
+    // If the repo or org is ever renamed, regenerate: portal.azure.com/#create/Microsoft.Template/uri/ + URL-encoded raw URL.
+    deployToAzureUrl: "https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAqueductTech%2Fassessment-portal%2Fmain%2Flighthouse.json"
+  };
+  // ------------------------------------------------------------------
+
+  var params = new URLSearchParams(window.location.search);
+  var tenant  = params.get("tenant");
+  var consent = (params.get("admin_consent") || "").toLowerCase() === "true";
+  var state   = params.get("state") || "";
+  var error   = params.get("error");
+  var errorDescription = params.get("error_description");
+
+  var main = document.getElementById("main");
+  var html = "";
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  var mailSubject = encodeURIComponent("Aqueduct assessment consent complete" + (state ? " - " + state : ""));
+
+  if (consent && tenant) {
+    var mailBody = encodeURIComponent(
+      "Hi David,\n\nAdmin consent is complete.\n\nTenant ID: " + tenant +
+      (state ? "\nEngagement: " + state : "") + "\n\nThanks");
+    html =
+      '<div class="card ok">' +
+      '  <div class="status-icon">&#10004;</div>' +
+      '  <h2>Consent complete - thank you</h2>' +
+      '  <p>The read-only assessment app is now registered in your tenant. Two quick steps to finish:</p>' +
+      '  <div class="step"><div class="step-num">1</div><div>' +
+      '    <p><strong>Send Aqueduct your Tenant ID</strong> (shown below) so collection can be scheduled.</p>' +
+      '    <div class="tenant-box"><span id="tid">' + esc(tenant) + '</span>' +
+      '    <button onclick="copyTid(this)">Copy</button></div>' +
+      '    <a class="btn" href="mailto:' + esc(CONFIG.contactEmail) + '?subject=' + mailSubject + '&body=' + mailBody + '">Email it to Aqueduct</a>' +
+      '  </div></div>' +
+      '  <div class="step"><div class="step-num">2</div><div>' +
+      '    <p><strong>If Azure subscriptions are in scope</strong>, click below and choose the subscription(s) to include. ' +
+      'This grants three read-only roles (Reader, Security Reader, Cost Management Reader) via Azure Lighthouse. ' +
+      'It appears under <em>Service providers</em> in your portal and you can remove it at any time.</p>' +
+      '    <a class="btn" href="' + esc(CONFIG.deployToAzureUrl) + '" target="_blank" rel="noopener">Grant Azure read-only access</a>' +
+      '    <p class="muted" style="margin-top:8px">Requires Owner on the subscription. Skip this step if the engagement is Microsoft 365 / Entra only.</p>' +
+      '  </div></div>' +
+      '</div>' +
+      '<div class="card">' +
+      '  <h2>What did I just approve?</h2>' +
+      '  <p>A read-only application ("Aqueduct Cloud Assessment - Read Only") that lets Aqueduct collect configuration ' +
+      'and posture data from Entra ID, Microsoft 365, Intune, and Microsoft Defender. Every permission is read-only: ' +
+      'the app cannot create, change, or delete anything. The sign-in credential is a certificate held only by Aqueduct.</p>' +
+      '  <p>You can review the full permission list in the Entra admin center under ' +
+      '<strong>Enterprise applications &gt; Aqueduct Cloud Assessment - Read Only &gt; Permissions</strong>, ' +
+      'and deleting that application removes all access instantly.</p>' +
+      '</div>';
+  } else if (error) {
+    var errMailBody = encodeURIComponent(
+      "Hi David,\n\nThe consent link returned an error.\n\nError: " + error +
+      "\nDetails: " + (errorDescription || "n/a") + (state ? "\nEngagement: " + state : "") + "\n\nThanks");
+    html =
+      '<div class="card err">' +
+      '  <div class="status-icon">&#10008;</div>' +
+      '  <h2>Consent was not completed</h2>' +
+      '  <p>Microsoft returned the following:</p>' +
+      '  <div class="errbox">' + esc(error) + (errorDescription ? ": " + esc(errorDescription) : "") + '</div>' +
+      '  <p>Common causes: the sign-in account is not a Global Administrator (or Privileged Role Administrator), ' +
+      'or the request was cancelled. You can simply click the onboarding link from the email again.</p>' +
+      '  <a class="btn" href="mailto:' + esc(CONFIG.contactEmail) + '?subject=' + mailSubject + '&body=' + errMailBody + '">Contact Aqueduct</a>' +
+      '</div>';
+  } else {
+    html =
+      '<div class="card">' +
+      '  <h2>Aqueduct Cloud Assessment onboarding</h2>' +
+      '  <p>This page is the landing step of the onboarding link Aqueduct sends to your Global Administrator. ' +
+      'If you arrived here directly, use the consent link from your onboarding email to begin.</p>' +
+      '  <p class="muted">Questions? Contact <a href="mailto:' + esc(CONFIG.contactEmail) + '">' + esc(CONFIG.contactEmail) + '</a>.</p>' +
+      '</div>';
+  }
+
+  main.innerHTML = html;
+
+  function copyTid(btn) {
+    var text = document.getElementById("tid").textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1600);
+      });
+    } else {
+      var r = document.createRange();
+      r.selectNodeContents(document.getElementById("tid"));
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      document.execCommand("copy");
+      sel.removeAllRanges();
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy"; }, 1600);
+    }
+  }
+</script>
+</body>
+</html>

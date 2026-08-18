@@ -1,0 +1,117 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Azure Lighthouse delegation for the Aqueduct cloud assessment. Grants READ-ONLY access (Reader, Security Reader, Cost Management Reader) on the selected subscription to the Aqueduct assessment principals. Remove any time: Portal > Service providers > Aqueduct > Delete, or delete the registration assignment. ONE-TIME EDIT before publishing: replace the managedByTenantId default and the two principalId defaults with the values printed by Setup-AQAssessorApp.ps1.",
+    "author": "David Bird (Aqueduct)"
+  },
+  "parameters": {
+    "mspOfferName": {
+      "type": "string",
+      "defaultValue": "Aqueduct Cloud Assessment (Read Only)",
+      "metadata": {
+        "description": "Name shown under Service providers in the Azure portal."
+      }
+    },
+    "mspOfferDescription": {
+      "type": "string",
+      "defaultValue": "Read-only access for the Aqueduct cloud assessment: resource inventory, Defender for Cloud posture, and cost data. No write access. Contact: David Bird (Aqueduct).",
+      "metadata": {
+        "description": "Description shown under Service providers."
+      }
+    },
+    "managedByTenantId": {
+      "type": "string",
+      "defaultValue": "__AQUEDUCT_TENANT_ID__",
+      "metadata": {
+        "description": "Aqueduct's Entra tenant ID (from Setup-AQAssessorApp.ps1 output)."
+      }
+    },
+    "assessorAppPrincipalId": {
+      "type": "string",
+      "defaultValue": "__AQ_APP_SP_OBJECT_ID__",
+      "metadata": {
+        "description": "Object ID of the Aqueduct Cloud Assessment app's service principal IN THE AQUEDUCT TENANT (the 'Home SP Object ID' from Setup-AQAssessorApp.ps1). Enables unattended app-only collection."
+      }
+    },
+    "assessorUserPrincipalId": {
+      "type": "string",
+      "defaultValue": "__AQ_ASSESSOR_USER_OR_GROUP_OBJECT_ID__",
+      "metadata": {
+        "description": "Object ID of David's user (or an AQ Assessors security group) in the Aqueduct tenant, for interactive portal access to the delegated subscription."
+      }
+    }
+  },
+  "variables": {
+    "roleReader": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+    "roleSecurityReader": "39bc4728-0917-49c7-9d2c-d95423bc2eb4",
+    "roleCostManagementReader": "72fafb9e-0641-4937-9268-a91bfd8191a3",
+    "authorizations": [
+      {
+        "principalId": "[parameters('assessorAppPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct Cloud Assessment app (unattended collection)",
+        "roleDefinitionId": "[variables('roleReader')]"
+      },
+      {
+        "principalId": "[parameters('assessorAppPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct Cloud Assessment app (unattended collection)",
+        "roleDefinitionId": "[variables('roleSecurityReader')]"
+      },
+      {
+        "principalId": "[parameters('assessorAppPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct Cloud Assessment app (unattended collection)",
+        "roleDefinitionId": "[variables('roleCostManagementReader')]"
+      },
+      {
+        "principalId": "[parameters('assessorUserPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct assessor (David Bird)",
+        "roleDefinitionId": "[variables('roleReader')]"
+      },
+      {
+        "principalId": "[parameters('assessorUserPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct assessor (David Bird)",
+        "roleDefinitionId": "[variables('roleSecurityReader')]"
+      },
+      {
+        "principalId": "[parameters('assessorUserPrincipalId')]",
+        "principalIdDisplayName": "Aqueduct assessor (David Bird)",
+        "roleDefinitionId": "[variables('roleCostManagementReader')]"
+      }
+    ],
+    "registrationName": "[guid(parameters('mspOfferName'), parameters('managedByTenantId'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedServices/registrationDefinitions",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('registrationName')]",
+      "properties": {
+        "registrationDefinitionName": "[parameters('mspOfferName')]",
+        "description": "[parameters('mspOfferDescription')]",
+        "managedByTenantId": "[parameters('managedByTenantId')]",
+        "authorizations": "[variables('authorizations')]"
+      }
+    },
+    {
+      "type": "Microsoft.ManagedServices/registrationAssignments",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('registrationName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedServices/registrationDefinitions', variables('registrationName'))]"
+      ],
+      "properties": {
+        "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions', variables('registrationName'))]"
+      }
+    }
+  ],
+  "outputs": {
+    "mspOfferName": {
+      "type": "string",
+      "value": "[parameters('mspOfferName')]"
+    },
+    "delegatedRoles": {
+      "type": "string",
+      "value": "Reader, Security Reader, Cost Management Reader (all read-only)"
+    }
+  }
+}
