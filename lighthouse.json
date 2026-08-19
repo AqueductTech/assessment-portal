@@ -22,21 +22,21 @@
     },
     "managedByTenantId": {
       "type": "string",
-      "defaultValue": "__AQUEDUCT_TENANT_ID__",
+      "defaultValue": "06fd9423-74e2-425e-a6c4-ac569140d2e6",
       "metadata": {
         "description": "Aqueduct's Entra tenant ID (from Setup-AQAssessorApp.ps1 output)."
       }
     },
     "assessorAppPrincipalId": {
       "type": "string",
-      "defaultValue": "__AQ_APP_SP_OBJECT_ID__",
+      "defaultValue": "d0be578d-eac1-4b3d-a0d4-aac2ef46d466",
       "metadata": {
         "description": "Object ID of the Aqueduct Cloud Assessment app's service principal IN THE AQUEDUCT TENANT (the 'Home SP Object ID' from Setup-AQAssessorApp.ps1). Enables unattended app-only collection."
       }
     },
     "assessorUserPrincipalId": {
       "type": "string",
-      "defaultValue": "__AQ_ASSESSOR_USER_OR_GROUP_OBJECT_ID__",
+      "defaultValue": "7a11f6f4-940b-4e52-8510-be4d298a7a4c",
       "metadata": {
         "description": "Object ID of David's user (or an AQ Assessors security group) in the Aqueduct tenant, for interactive portal access to the delegated subscription."
       }
