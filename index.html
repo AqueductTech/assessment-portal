@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <title>Aqueduct Cloud Assessment - Onboarding</title>
 <style>
   /* ONE-TIME EDIT: nothing in the CSS. Edit the CONFIG block in the script below. */
@@ -150,6 +151,10 @@
   var error   = params.get("error");
   var errorDescription = params.get("error_description");
 
+  // Privacy: drop the tenant ID and engagement slug from the address bar and
+  // browser history once read (they remain visible on the page itself).
+  try { history.replaceState(null, "", window.location.pathname); } catch (e) {}
+
   var main = document.getElementById("main");
   var html = "";
 
@@ -168,8 +173,9 @@
     html =
       '<div class="card ok">' +
       '  <div class="status-icon">&#10004;</div>' +
-      '  <h2>Consent complete - thank you</h2>' +
-      '  <p>The read-only assessment app is now registered in your tenant. Two quick steps to finish:</p>' +
+      '  <h2>Consent response received - thank you</h2>' +
+      '  <p>Microsoft returned a successful consent response for the tenant below. Aqueduct independently verifies ' +
+      'the registration against your tenant before any collection begins. Two quick steps to finish:</p>' +
       '  <div class="step"><div class="step-num">1</div><div>' +
       '    <p><strong>Send Aqueduct your Tenant ID</strong> (shown below) so collection can be scheduled.</p>' +
       '    <div class="tenant-box"><span id="tid">' + esc(tenant) + '</span>' +
