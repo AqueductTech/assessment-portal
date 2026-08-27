@@ -137,10 +137,11 @@
   // CONFIG: one-time edits after hosting is set up
   // ------------------------------------------------------------------
   var CONFIG = {
-    contactEmail: "dbird@aqueducttech.com",
-    // Pre-wired to this repo's raw lighthouse.json (AqueductTech/assessment-portal, main).
-    // If the repo or org is ever renamed, regenerate: portal.azure.com/#create/Microsoft.Template/uri/ + URL-encoded raw URL.
-    deployToAzureUrl: "https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAqueductTech%2Fassessment-portal%2Fmain%2Flighthouse.json"
+    contactEmail: "dbird@aqueducttech.com"
+    // NOTE (security review 2026-08-27): this page deliberately carries NO
+    // Azure deployment link. The Deploy to Azure link is pinned to an
+    // immutable commit SHA per engagement and lives only in the onboarding
+    // email, so the authorization a client deploys cannot drift.
   };
   // ------------------------------------------------------------------
 
@@ -183,13 +184,14 @@
       '    <a class="btn" href="mailto:' + esc(CONFIG.contactEmail) + '?subject=' + mailSubject + '&body=' + mailBody + '">Email it to Aqueduct</a>' +
       '  </div></div>' +
       '  <div class="step"><div class="step-num">2</div><div>' +
-      '    <p><strong>If Azure subscriptions are in scope</strong>, click below and choose the subscription(s) to include. ' +
-      'This grants three read-only roles (Reader, Security Reader, Cost Management Reader) via Azure Lighthouse. ' +
-      'It appears under <em>Service providers</em> in your portal and you can remove it at any time.</p>' +
-      '    <p class="muted">Although the portal shows a "deployment" and asks for a subscription and region, this creates ' +
-      '<strong>no Azure resources and nothing billable</strong>: it only records the role delegation. Your invoice is unaffected.</p>' +
-      '    <a class="btn" href="' + esc(CONFIG.deployToAzureUrl) + '" target="_blank" rel="noopener">Grant Azure read-only access</a>' +
-      '    <p class="muted" style="margin-top:8px">Requires Owner on the subscription. Skip this step if the engagement is Microsoft 365 / Entra only.</p>' +
+      '    <p><strong>If Azure subscriptions are in scope</strong>, use the "Grant Azure read-only access" link ' +
+      'in your onboarding email (the same email that brought you here) and choose the subscription(s) to include. ' +
+      'That link is pinned to a reviewed, immutable version of the authorization template, which is why it is not ' +
+      'repeated on this page. It grants three read-only roles (Reader, Security Reader, Cost Management Reader) via ' +
+      'Azure Lighthouse, appears under <em>Service providers</em> in your portal, and you can remove it at any time.</p>' +
+      '    <p class="muted">Although the Azure portal shows a "deployment" and asks for a subscription and region, it creates ' +
+      '<strong>no Azure resources and nothing billable</strong>: it only records the role delegation. The person clicking needs ' +
+      'Owner on the subscription. Skip this step if the engagement is Microsoft 365 / Entra only.</p>' +
       '  </div></div>' +
       '</div>' +
       '<div class="card">' +
